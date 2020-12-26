@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @ClassName: ZkMasterSelectHandler
  * @Description: todo
- * @Company: 广州市两棵树网络科技有限公司
+ * @Company: xxxxx
  * @Author: zhengcq
  * @Date: 2020/12/26
  */
@@ -58,6 +58,12 @@ public class ZkMasterSelectHandler implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        if (!zookeeperConfig.isInZk()) {
+            // zk 失效或者连接不上。每个节点都是master 节点。
+            System.out.println("zk invalid");
+            isMaster = true;
+            return;
+        }
         Stat stat = zkClient.checkExists().forPath(zookeeperConfig.getTinyIdNodePath());
         // 创建 tiny master zk 节点
         if (stat == null) {

@@ -1,6 +1,7 @@
 package com.xiaoju.uemc.tinyid.server;
 
 import com.xiaoju.uemc.tinyid.base.generator.IdGenerator;
+import com.xiaoju.uemc.tinyid.base.generator.impl.RandomGenerator;
 import com.xiaoju.uemc.tinyid.server.factory.impl.IdGeneratorFactoryServer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,6 +30,12 @@ public class ServerTest {
 //        IdGenerator idGenerator = idGeneratorFactoryServer.getIdGenerator("test");
 //        Long id = idGenerator.nextId();
 //        System.out.println("current id is: " + id);
+//        long cur = System.currentTimeMillis();
+//        System.out.println( (cur << 20) ^ ((cur >> 5)) ^ Long.MAX_VALUE);
+        RandomGenerator randomGenerator = new RandomGenerator(50);
+        for (int i= 1; i <= 1000; i++) {
+            System.out.println(randomGenerator.getFactor());
+        }
     }
 
     @Test

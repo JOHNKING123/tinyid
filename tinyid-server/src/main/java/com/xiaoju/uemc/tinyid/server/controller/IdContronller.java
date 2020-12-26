@@ -42,11 +42,12 @@ public class IdContronller {
     private ZkMasterSelectHandler zkMasterSelectHandler;
 
     @RequestMapping("nextId")
-    public Response<List<Long>> nextId(String bizType, Integer batchSize, String token) {
+    public Response<List<Long>> nextId(String bizType, Integer batchSize, String token, Integer randomFlag) {
         Map<String, String> form = new HashMap<>();
         form.put("bizType", bizType);
         form.put("batchSize", batchSize.toString());
         form.put("token", token);
+        form.put("randomFlag", randomFlag != null ? randomFlag.toString() : "0");
         String rs = null;
         try {
             rs = zkMasterSelectHandler.forwardMaster("id/nextId", form, true);
@@ -67,7 +68,12 @@ public class IdContronller {
         }
         try {
             IdGenerator idGenerator = idGeneratorFactoryServer.getIdGenerator(bizType);
-            List<Long> ids = idGenerator.nextId(newBatchSize);
+            List<Long> ids = null;
+            if (randomFlag != null && randomFlag > 0) {
+                ids = idGenerator.nextIdWithRandom(batchSize);
+            } else {
+                ids = idGenerator.nextId(batchSize);
+            }
             response.setData(ids);
         } catch (Exception e) {
             response.setCode(ErrorCode.SYS_ERR.getCode());

@@ -22,12 +22,25 @@ public class CachedIdGenerator implements IdGenerator {
     protected volatile SegmentId current;
     protected volatile SegmentId next;
     private volatile boolean isLoadingNext;
+    private long randomDelta;
     private Object lock = new Object();
     private ExecutorService executorService = Executors.newSingleThreadExecutor(new NamedThreadFactory("tinyid-generator"));
 
     public CachedIdGenerator(String bizType, SegmentIdService segmentIdService) {
         this.bizType = bizType;
         this.segmentIdService = segmentIdService;
+        randomDelta = 10L;
+        loadCurrent();
+    }
+
+    public CachedIdGenerator(String bizType, SegmentIdService segmentIdService, String randomDeltaStr) {
+        this.bizType = bizType;
+        this.segmentIdService = segmentIdService;
+        if (randomDeltaStr != null && !randomDeltaStr.isEmpty()) {
+            randomDelta = Long.valueOf(randomDeltaStr);
+        } else {
+            randomDelta = 10L;
+        }
         loadCurrent();
     }
 
@@ -97,6 +110,25 @@ public class CachedIdGenerator implements IdGenerator {
     }
 
     @Override
+    public Long nextIdWithDelta(long delta) {
+        while (true) {
+            if (current == null) {
+                loadCurrent();
+                continue;
+            }
+            Result result = current.nextId(delta);
+            if (result.getCode() == ResultCode.OVER) {
+                loadCurrent();
+            } else {
+                if (result.getCode() == ResultCode.LOADING) {
+                    loadNext();
+                }
+                return result.getId();
+            }
+        }
+    }
+
+    @Override
     public List<Long> nextId(Integer batchSize) {
         List<Long> ids = new ArrayList<>();
         for (int i = 0; i < batchSize; i++) {
@@ -106,4 +138,15 @@ public class CachedIdGenerator implements IdGenerator {
         return ids;
     }
 
+
+    @Override
+    public List<Long> nextIdWithRandom(Integer batchSize) {
+        List<Long> ids = new ArrayList<>();
+        RandomGenerator randomGenerator = new RandomGenerator(randomDelta);
+        for (int i = 0; i < batchSize; i++) {
+            Long id = nextIdWithDelta(randomGenerator.getPositiveFactor());
+            ids.add(id);
+        }
+        return ids;
+    }
 }

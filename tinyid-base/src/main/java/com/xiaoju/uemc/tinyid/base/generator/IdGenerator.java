@@ -12,10 +12,24 @@ public interface IdGenerator {
      */
     Long nextId();
 
+
+    /**
+     * get next id
+     * @return
+     */
+    Long nextIdWithDelta(long delta);
+
     /**
      * get next id batch
      * @param batchSize
      * @return
      */
     List<Long> nextId(Integer batchSize);
+
+    /**
+     * get next id batch
+     * @param batchSize
+     * @return
+     */
+    List<Long> nextIdWithRandom(Integer batchSize);
 }

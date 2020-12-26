@@ -7,6 +7,7 @@ import com.xiaoju.uemc.tinyid.base.service.SegmentIdService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -19,9 +20,12 @@ public class IdGeneratorFactoryServer extends AbstractIdGeneratorFactory {
     @Autowired
     private SegmentIdService tinyIdService;
 
+    @Value("${id.generator.random.delta}")
+    private String randomDelta;
+
     @Override
     public IdGenerator createIdGenerator(String bizType) {
-        logger.info("createIdGenerator :{}", bizType);
-        return new CachedIdGenerator(bizType, tinyIdService);
+        logger.info("createIdGenerator :{} {}", bizType, randomDelta);
+        return new CachedIdGenerator(bizType, tinyIdService, randomDelta);
     }
 }

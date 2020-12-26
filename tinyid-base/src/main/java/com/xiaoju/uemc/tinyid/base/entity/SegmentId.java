@@ -64,6 +64,17 @@ public class SegmentId {
         return new Result(ResultCode.NORMAL, id);
     }
 
+    public Result nextId(long delta) {
+        long id = currentId.addAndGet(delta);
+        if (id > maxId) {
+            return new Result(ResultCode.OVER, id);
+        }
+        if (id >= loadingId) {
+            return new Result(ResultCode.LOADING, id);
+        }
+        return new Result(ResultCode.NORMAL, id);
+    }
+
     public boolean useful() {
         return currentId.get() <= maxId;
     }

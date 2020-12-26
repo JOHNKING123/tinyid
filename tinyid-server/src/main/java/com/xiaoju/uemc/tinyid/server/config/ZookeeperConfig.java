@@ -13,10 +13,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+
 /**
  * @ClassName: ZookeeperConfig
  * @Description: todo
- * @Company: 广州市两棵树网络科技有限公司
+ * @Company: xxxxx
  * @Author: zhengcq
  * @Date: 2020/12/26
  */
@@ -38,6 +42,9 @@ public class ZookeeperConfig {
     @Value("${zookeeper.service.node.path}")
     private String tinyIdNodePath;
 
+    @Getter
+    private boolean inZk;
+
     @Bean
     public CuratorFramework zkClient() {
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
@@ -48,7 +55,58 @@ public class ZookeeperConfig {
                         .connectionTimeoutMs(5000)
                         .retryPolicy(retryPolicy)
                         .build();
-        client.start();
-        return client;
+        try {
+            boolean isConnect = false;
+            String[] tmps = zkServiceUrl.split(",");
+            for (String hostTmp : tmps) {
+                if (isHostConnectable(hostTmp)) {
+                    isConnect = true;
+                    break;
+                }
+            }
+            if (!isConnect) {
+                inZk = false;
+                return CuratorFrameworkFactory.builder().build();
+            }
+            client.start();
+            inZk = true;
+            return client;
+        } catch (Exception e) {
+            inZk = false;
+            return client;
+        }
+    }
+
+
+    /**
+     * 测试ip 端口是否连通
+     *
+     * @param url url
+     * @return boolean 是否连通
+     */
+    private boolean isHostConnectable(String url) {
+        if (url == null || url.isEmpty() || !url.contains(":")) {
+            return false;
+        }
+        String[] tmps = url.split(":");
+        if (tmps.length != 2) {
+            return false;
+        }
+        String host = tmps[0];
+        Integer port = Integer.parseInt(tmps[1]);
+
+        Socket socket = new Socket();
+        try {
+            socket.connect(new InetSocketAddress(host, port), 3000);
+        } catch (IOException e) {
+            return false;
+        } finally {
+            try {
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return true;
     }
 }
