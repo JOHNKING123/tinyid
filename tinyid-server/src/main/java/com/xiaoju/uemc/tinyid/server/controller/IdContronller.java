@@ -1,9 +1,12 @@
 package com.xiaoju.uemc.tinyid.server.controller;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.xiaoju.uemc.tinyid.base.entity.SegmentId;
 import com.xiaoju.uemc.tinyid.base.generator.IdGenerator;
 import com.xiaoju.uemc.tinyid.base.service.SegmentIdService;
 import com.xiaoju.uemc.tinyid.server.factory.impl.IdGeneratorFactoryServer;
+import com.xiaoju.uemc.tinyid.server.handler.ZkMasterSelectHandler;
 import com.xiaoju.uemc.tinyid.server.service.TinyIdTokenService;
 import com.xiaoju.uemc.tinyid.server.vo.ErrorCode;
 import com.xiaoju.uemc.tinyid.server.vo.Response;
@@ -14,7 +17,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author du_imba
@@ -33,9 +38,27 @@ public class IdContronller {
     @Value("${batch.size.max}")
     private Integer batchSizeMax;
 
+    @Autowired
+    private ZkMasterSelectHandler zkMasterSelectHandler;
+
     @RequestMapping("nextId")
     public Response<List<Long>> nextId(String bizType, Integer batchSize, String token) {
+        Map<String, String> form = new HashMap<>();
+        form.put("bizType", bizType);
+        form.put("batchSize", batchSize.toString());
+        form.put("token", token);
+        String rs = null;
+        try {
+            rs = zkMasterSelectHandler.forwardMaster("id/nextId", form, true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         Response<List<Long>> response = new Response<>();
+        if (rs != null && !rs.isEmpty()) {
+            response = JSON.parseObject(rs, new TypeReference<Response<List<Long>>>(){});
+            return response;
+        }
+
         Integer newBatchSize = checkBatchSize(batchSize);
         if (!tinyIdTokenService.canVisit(bizType, token)) {
             response.setCode(ErrorCode.TOKEN_ERR.getCode());

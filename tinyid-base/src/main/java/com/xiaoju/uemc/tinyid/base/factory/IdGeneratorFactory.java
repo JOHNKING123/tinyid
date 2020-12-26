@@ -12,4 +12,9 @@ public interface IdGeneratorFactory {
      * @return
      */
     IdGenerator getIdGenerator(String bizType);
+
+    /**
+     * 情况生成器 容器
+     */
+    void clearGenerator() ;
 }

@@ -26,6 +26,13 @@ public abstract class AbstractIdGeneratorFactory implements IdGeneratorFactory {
         }
     }
 
+    @Override
+    public void clearGenerator() {
+        synchronized (this) {
+            generators.clear();
+        }
+    }
+
     /**
      * 根据bizType创建id生成器
      *
