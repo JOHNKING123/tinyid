@@ -49,7 +49,7 @@ public class ZkMasterSelectHandler implements InitializingBean {
     private String localUrl;
 
     @Getter
-    private boolean isMaster;
+    private Boolean isMaster;
 
     @Getter
     private String masterUrl;
@@ -92,7 +92,6 @@ public class ZkMasterSelectHandler implements InitializingBean {
         if (checkMaster()) {
             masterNodePath = nodePath;
             masterUrl = ipWithPort;
-            isMaster = true;
             System.out.println("isMaster:" + isMaster);
             beMaster();
         } else {
@@ -103,21 +102,24 @@ public class ZkMasterSelectHandler implements InitializingBean {
         }
     }
 
-    public void toBeMaster() throws Exception {
+    private void toBeMaster() throws Exception {
         if (checkMaster()) {
             masterNodePath = nodePath;
             masterUrl = localUrl;
             System.out.println("isMaster:" + isMaster);
-            if (!isMaster) {
-                beMaster();
-            }
-
+            beMaster();
         }
     }
 
-    public void beMaster() {
-        isMaster = true;
-        idGeneratorFactoryServer.clearGenerator();
+    private void beMaster() {
+        synchronized (isMaster) {
+            if (isMaster) {
+                return;
+            }
+            isMaster = true;
+            idGeneratorFactoryServer.clearGenerator();
+        }
+
     }
 
     private void  watchMaster() throws Exception {
@@ -132,10 +134,7 @@ public class ZkMasterSelectHandler implements InitializingBean {
                             masterNodePath = nodePath;
                             masterUrl = localUrl;
                             System.out.println("watch deal");
-                            if (!isMaster) {
-                                isMaster = true;
-                                beMaster();
-                            }
+                            beMaster();
 
                         } else {
                             watchMaster();
