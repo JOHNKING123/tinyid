@@ -49,7 +49,7 @@ public class ZkMasterSelectHandler implements InitializingBean {
     private String localUrl;
 
     @Getter
-    private Boolean isMaster;
+    private Boolean isMaster = false;
 
     @Getter
     private String masterUrl;
