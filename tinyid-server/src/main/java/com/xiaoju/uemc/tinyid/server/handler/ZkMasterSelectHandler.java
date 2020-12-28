@@ -184,7 +184,7 @@ public class ZkMasterSelectHandler implements InitializingBean {
         String url =  String.format("http://%s/tinyid/%s?", masterUrl, path);
         String rs = "";
         try {
-            rs = TinyIdHttpUtils.post(url, form, 30, 30);
+            rs = TinyIdHttpUtils.post(url, form, 3000, 3000);
             System.out.println(rs);
         } catch (Exception e) {
             if (tryFlag) {
