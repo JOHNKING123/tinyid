@@ -70,9 +70,9 @@ public class IdContronller {
             IdGenerator idGenerator = idGeneratorFactoryServer.getIdGenerator(bizType);
             List<Long> ids = null;
             if (randomFlag != null && randomFlag > 0) {
-                ids = idGenerator.nextIdWithRandom(batchSize);
+                ids = idGenerator.nextIdWithRandom(newBatchSize);
             } else {
-                ids = idGenerator.nextId(batchSize);
+                ids = idGenerator.nextId(newBatchSize);
             }
             response.setData(ids);
         } catch (Exception e) {
